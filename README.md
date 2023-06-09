@@ -15,13 +15,47 @@
     - [Usage](#instruction-guide)
 2. [Authors](#authors)
 
-## Getting Started <a name='getting-started'></a>
+## Getting Started <a id="getting-started" name='getting-started'></a>
 
-### Installation Guide <a name='installation-guide'></a>
+### Installation Guide <a id="installation-guide" name='installation-guide'></a>
+Download the recent version of MariaDB
+```sh
+https://mariadb.org/download/
+```
 
-### How it works <a name='instruction-guide'></a>
+Download the recent version of MariaDB Connector\C
+```sh
+https://mariadb.com/downloads/connectors/
+```
 
-## Authors <a name='authors'></a>
+After installation of MariaDB Connector/C download and install MariaDB Connector/Python with the following command
+```sh
+pip3 install mariadb
+```
+Download the setup_mysql.sql
+
+Open a terminal and go to the directory of the sql file.
+```sh
+cd /Users/YourUsername/File
+```
+
+Log in to the root user of MariaDB.
+```sh
+mysql -u root -p
+```
+
+Once you are logged in to the MariaDB server, you can source and execute the setup_mysql.sql.
+```sh
+source setup_mysql.sql
+```
+If the SQL script file is located in a different directory, you can provide the full file path instead:
+```sh
+source /path/to/setup_mysql.sql
+```
+
+### How it works <a id="instruction-guide" name='instruction-guide'></a>
+
+## Authors <a id="authors" name='authors'></a>
 
 **Karl Kenneth Owen D. Olipas**
 

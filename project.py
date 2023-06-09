@@ -1,15 +1,11 @@
-from functions import *
-
 expenses = []
 friends = []
 groups = []
-sub_choice = 0
+# individual = [0, "", "", "", "", False, 0]
+
+individual_id = 000000000
 
 while True:
-    if check_user() == True:
-        add_user()
-        pass
-
     print("\n----- Menu -----")
     print("1. Add")
     print("2. Delete")
@@ -29,11 +25,25 @@ while True:
         sub_choice = input("Enter your sub-choice: ")
 
         if sub_choice == "1":
-            add_expense()
+            # individual_id += individual_id
+
+            first_name = input("Enter first name: ")
+            middle_initial = input("Enter middle initial: ")
+            last_name = input("Enter last name: ")
+            email = input("Enter email: ")
+
+            is_user = input("Are you a user? (yes/no): ")
+            # boolean_value = bool(user_input)
+
+            balance = input("Enter the expense: ")
+
+            expenses.append()
+            print("Expense added.")
 
         elif sub_choice == "2":
-            add_user()
-            view_users()
+            friend = input("Enter friend's name: ")
+            friends.append(friend)
+            print("Friend added.")
 
         elif sub_choice == "3":
             group = input("Enter group's name: ")
@@ -45,7 +55,6 @@ while True:
         print("1. Delete an expense")
         print("2. Delete a friend")
         print("3. Delete a group")
-        print("4. Delete a friend from a group")
 
         sub_choice = input("Enter your sub-choice: ")
 
