@@ -15,7 +15,7 @@ while True:
     print("2. Delete")
     print("3. Search")
     print("4. Update")
-    print("5. View Expenses")
+    print("5. View")
     print("0. Exit")
 
     choice = input("Enter your choice: ")
@@ -29,7 +29,7 @@ while True:
         sub_choice = input("Enter your sub-choice: ")
 
         if sub_choice == "1":
-            add_expense()
+            add_transaction()
 
         elif sub_choice == "2":
             add_user()
@@ -141,7 +141,7 @@ while True:
                 print("Group not found.")
 
     elif choice == "5":
-        print("\n----- View Expenses -----")
+        print("\n----- View -----")
         print("1. View expenses made within a month")
         print("2. View expenses made with a group")
         print("3. View expenses made with a friend")
@@ -168,7 +168,7 @@ while True:
             print("Logic to view all friends with outstanding balance")
 
         elif sub_choice == "6":
-            print("Logic to view all groups")
+            view_groups()
 
         elif sub_choice == "7":
             print("Logic to view all groups with an outstanding balance")

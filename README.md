@@ -32,6 +32,12 @@ After installation of MariaDB Connector/C download and install MariaDB Connector
 ```sh
 pip3 install mariadb
 ```
+
+install the necessary libraries
+```sh python -m pip install -U git+https://github.com/jazzband/prettytable```
+
+https://pypi.org/project/prettytable/ reference guide for prettytable
+
 Download the setup_mysql.sql
 
 Open a terminal and go to the directory of the sql file.

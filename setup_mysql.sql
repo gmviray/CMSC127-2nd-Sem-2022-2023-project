@@ -43,7 +43,7 @@ CREATE TABLE transaction_history (
     transaction_id INT(9) NOT NULL AUTO_INCREMENT,
     date_issued DATE NOT NULL,
     is_group BOOLEAN NOT NULL,
-	payer_id INT(9) NOT NULL,
+	payee_id INT(9) NOT NULL,
 	number_of_users_involved INT(4) NOT NULL,
 	is_settled BOOLEAN NOT NULL,
 	transaction_description VARCHAR(1000),
@@ -53,7 +53,7 @@ CREATE TABLE transaction_history (
 	group_id INT(9),
     PRIMARY KEY (transaction_id),
     CONSTRAINT transactionHistory_group_id_fk FOREIGN KEY(group_id) REFERENCES friend_group(group_id),
-    CONSTRAINT transactionHistory_payer_id_fk FOREIGN KEY(payer_id) REFERENCES individual(individual_id)
+    CONSTRAINT transactionHistory_payee_id_fk FOREIGN KEY(payee_id) REFERENCES individual(individual_id)
 );
 
 CREATE TABLE individual_makes_transaction (
@@ -79,9 +79,9 @@ INSERT INTO individual (first_name, middle_initial, last_name, email, is_user, b
 
 INSERT INTO individual (first_name, middle_initial, last_name, email, is_user, balance) VALUES ("Hubert Blaine", NULL, "Wolfeschlegelsteinhausenbergerdorff", "hubertblaine@email.com", False, 12678.00);
 
-INSERT INTO friend_group (group_name, number_of_members) VALUES ("spiC3G1rLz", 10);
+INSERT INTO friend_group (group_name, number_of_members) VALUES ("spiC3G1rLz", 4);
 
-INSERT INTO friend_group (group_name, number_of_members) VALUES ("Frontrow", 5);
+INSERT INTO friend_group (group_name, number_of_members) VALUES ("Frontrow", 3);
 
 INSERT INTO individual_belongs_friend_group VALUES (1, 1);
 
@@ -96,3 +96,36 @@ INSERT INTO individual_belongs_friend_group VALUES (1, 2);
 INSERT INTO individual_belongs_friend_group VALUES (5, 2);
 
 INSERT INTO individual_belongs_friend_group VALUES (4, 2);
+
+INSERT INTO transaction_history (date_issued, is_group, payee_id, number_of_users_involved, is_settled, transaction_description, total_amount, contribution, type_of_transaction, group_id) VALUES ("2023-05-25", FALSE, 1, 5, FALSE, "Expense # 1", 2650.00, 530.00, "EXPENSE", NULL);
+
+INSERT INTO individual_makes_transaction VALUES (1, 1);
+
+INSERT INTO individual_makes_transaction VALUES (2, 1);
+
+INSERT INTO individual_makes_transaction VALUES (3, 1);
+
+INSERT INTO individual_makes_transaction VALUES (4, 1);
+
+INSERT INTO individual_makes_transaction VALUES (5, 1);
+
+INSERT INTO transaction_history (date_issued, is_group, payee_id, number_of_users_involved, is_settled, transaction_description, total_amount, contribution, type_of_transaction, group_id) VALUES ("2023-05-26", FALSE, 1, 1, TRUE, "Payment # 1", 2650.00, 530.00, "SETTLEMENT", NULL);
+
+INSERT INTO individual_makes_transaction VALUES (1, 2);
+
+INSERT INTO individual_makes_transaction VALUES (2, 2);
+
+INSERT INTO transaction_history (date_issued, is_group, payee_id, number_of_users_involved, is_settled, transaction_description, total_amount, contribution, type_of_transaction, group_id) VALUES ("2023-05-26", TRUE, 5, 3, FALSE, "Expense # 2", 150.00, 50.00, "EXPENSE", 2);
+
+INSERT INTO individual_makes_transaction VALUES (1, 3);
+
+INSERT INTO individual_makes_transaction VALUES (5, 3);
+
+INSERT INTO individual_makes_transaction VALUES (4, 3);
+
+INSERT INTO transaction_history (date_issued, is_group, payee_id, number_of_users_involved, is_settled, transaction_description, total_amount, contribution, type_of_transaction, group_id) VALUES ("2023-05-26", TRUE, 5, 2, FALSE, "Payment # 2", 150.00, 40.00, "SETTLEMENT", 2);
+
+INSERT INTO individual_makes_transaction VALUES (1, 4);
+
+INSERT INTO individual_makes_transaction VALUES (5, 4);
+
