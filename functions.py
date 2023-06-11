@@ -73,9 +73,7 @@ def count_groupMembers(group_id):
 def get_userID():
     try:
         cur.execute("SELECT individual_id FROM individual WHERE is_user IS TRUE")
-        print(cur.fetchone()[0])
-        for (user_id) in cur:
-            return user_id[0]
+        return cur.fetchone()[0]
     except mariadb.Error as e:
         print(f"Error: {e}")
 
@@ -135,7 +133,7 @@ def check_transactionType():
         if transactionTypeInput == "1":
             return "EXPENSE"
         elif transactionTypeInput == "2":
-            return "PAYMENT"
+            return "SETTLEMENT"
         else:
             print("Invalid input.")
             continue
@@ -149,8 +147,8 @@ def add_user():
     # Loops through each input to ensure that a valid information is entered    
     while True:
         first_name = input("Enter first name: ")
-        first_name = first_name.replace(" ", "")  # Remove spaces from first name
-        if len(first_name) <= 50 and first_name.isalpha():
+        first_name_checker = first_name.replace(" ", "")  # Remove spaces from first name
+        if len(first_name) <= 50 and first_name_checker.isalpha():
             break
         else:
             print("Invalid input. Please enter a valid first name.")
@@ -164,8 +162,8 @@ def add_user():
 
     while True:
         last_name = input("Enter last name: ")
-        last_name = last_name.replace(" ", "")  # Remove spaces from last name
-        if len(last_name) <= 50 and last_name.isalpha():
+        last_name_checker = last_name.replace(" ", "")  # Remove spaces from last name
+        if len(last_name) <= 50 and last_name_checker.isalpha():
             break
         else:
             print("Invalid input. Please enter a valid last name.")
@@ -177,16 +175,7 @@ def add_user():
         else:
             print("Invalid input. Please enter a valid email.")
 
-    while True:
-        try:
-            balance = float(input("Enter initial balance: "))
-            balance_str = str(balance)
-            if len(balance_str) <= 23 and len(balance_str.split('.')[-1]) <= 2:
-                break
-            else:
-                print("Invalid input. Please enter a valid balance with a maximum of 20 digits and 2 decimal places.")
-        except ValueError:
-            print("Invalid input. Please enter a valid balance as a number.")
+    balance = 0.00
 
     is_user = check_user()
 
@@ -205,7 +194,6 @@ def add_user():
 def add_expense(transaction_type):
     is_settled = False
 
-    # @TODO: add validation for the user's inputs
     isGroup = check_grouped()
 
     # For group expenses
@@ -251,14 +239,16 @@ def add_expense(transaction_type):
         amount_per_person = total_amount / count_groupMembers(group_id)
 
         # Ask for the transaction description
-        transaction_description = input("Enter transaction description: ")
+        while True:
+            transaction_description = input("Enter transaction description: ")
+            if transaction_description.strip(): 
+                break  
+            else:
+                print("Transaction description cannot be empty. Please try again.")
 
         # Add to the transaction history table
         try:
-            if transaction_description == "":
-                cur.execute("INSERT INTO transaction_history (date_issued, is_group, payee_id, number_of_users_involved, is_settled, transaction_description, total_amount, contribution, type_of_transaction, group_id) VALUES(CURDATE(), ?, ?, ?, ?, ?, ?, ?, ?, ?)", [isGroup, payee_id, count_groupMembers(group_id), is_settled, None, total_amount, amount_per_person, transaction_type, group_id])
-            else:
-                cur.execute("INSERT INTO transaction_history (date_issued, is_group, payee_id, number_of_users_involved, is_settled, transaction_description, total_amount, contribution, type_of_transaction, group_id) VALUES(CURDATE(), ?, ?, ?, ?, ?, ?, ?, ?, ?)", [isGroup, payee_id, count_groupMembers(group_id), is_settled, transaction_description, total_amount, amount_per_person, transaction_type, group_id])
+            cur.execute("INSERT INTO transaction_history (date_issued, is_group, payee_id, number_of_users_involved, is_settled, transaction_description, total_amount, contribution, type_of_transaction, group_id) VALUES(CURDATE(), ?, ?, ?, ?, ?, ?, ?, ?, ?)", [isGroup, payee_id, count_groupMembers(group_id), is_settled, transaction_description, total_amount, amount_per_person, transaction_type, group_id])
             conn.commit()
             __holder__ = getLastInserted()
             print("Expense added.")
@@ -270,11 +260,15 @@ def add_expense(transaction_type):
             cur.execute("SELECT individual_id FROM individual_belongs_friend_group WHERE group_id = ?", [group_id])
             members = cur.fetchall()
             for individual in members:
-                cur.execute("INSERT INTO individual_makes_transaction (individual_id, transaction_id) VALUES (?, ?)", [individual[0], __holder__])
-                conn.commit()
-
                 if payee_id == individual[0]:
-                    update_balance(individual[0], (-1*total_amount))
+                    cur.execute("INSERT INTO individual_makes_transaction VALUES (?, ?, ?)", [individual[0], __holder__, 0])
+                    conn.commit()
+                    update_balance(individual[0], (total_amount - amount_per_person))
+                else:
+                    cur.execute("INSERT INTO individual_makes_transaction VALUES (?, ?, ?)", [individual[0], __holder__, -1*amount_per_person])
+                    conn.commit()
+                    update_balance(individual[0], (-1*amount_per_person))
+
         except mariadb.Error as e:
             print(f"Error: {e}")
     
@@ -297,26 +291,29 @@ def add_expense(transaction_type):
             else:
                 print("User id not found. Please try again.")
 
-        # Choose a borrower
-        view_users()
-        while True:
-            try:
-                borrower_id = int(input("Enter borrower id: "))
-            except ValueError:
-                print("Invalid input. Please enter an id.")
-                continue
-        
-            if borrower_id == payee_id:
-                print("You cannot borrow from yourself. Please enter a payer id again.")
-                continue
+        if payee_id == get_userID():
+            # Choose a borrower
+            view_users()
+            while True:
+                try:
+                    borrower_id = int(input("Enter borrower id: "))
+                except ValueError:
+                    print("Invalid input. Please enter an id.")
+                    continue
             
-            cur.execute("SELECT * FROM individual WHERE individual_id = ?", [borrower_id])
-            result = cur.fetchone()
+                if borrower_id == payee_id:
+                    print("You cannot borrow from yourself. Please enter a payer id again.")
+                    continue
+                
+                cur.execute("SELECT * FROM individual WHERE individual_id = ?", [borrower_id])
+                result = cur.fetchone()
 
-            if result is not None:
-                break
-            else:
-                print("User id not found. Please try again.")
+                if result is not None:
+                    break
+                else:
+                    print("User id not found. Please try again.")
+        else:
+            borrower_id = get_userID()
 
         # Ask for the total amount
         total_amount = get_amount()
@@ -325,14 +322,16 @@ def add_expense(transaction_type):
         amount_per_person = total_amount / 2
 
         # Ask for the transaction description
-        transaction_description = input("Enter transaction description: ")
+        while True:
+            transaction_description = input("Enter transaction description: ")
+            if transaction_description.strip(): 
+                break  
+            else:
+                print("Transaction description cannot be empty. Please try again.")
 
         # Add to the transaction history table
         try:
-            if transaction_description == "":
-                cur.execute("INSERT INTO transaction_history (date_issued, is_group, payee_id, number_of_users_involved, is_settled, transaction_description, total_amount, contribution, type_of_transaction, group_id) VALUES(CURDATE(), ?, ?, 2, ?, ?, ?, ?, ?, ?)", [isGroup, payee_id, is_settled, None, total_amount, amount_per_person, transaction_type, None])
-            else:
-                cur.execute("INSERT INTO transaction_history (date_issued, is_group, payee_id, number_of_users_involved, is_settled, transaction_description, total_amount, contribution, type_of_transaction, group_id) VALUES(CURDATE(), ?, ?, 2, ?, ?, ?, ?, ?, ?)", [isGroup, payee_id, is_settled, transaction_description, total_amount, amount_per_person, transaction_type, None])
+            cur.execute("INSERT INTO transaction_history (date_issued, is_group, payee_id, number_of_users_involved, is_settled, transaction_description, total_amount, contribution, type_of_transaction, group_id) VALUES(CURDATE(), ?, ?, 2, ?, ?, ?, ?, ?, ?)", [isGroup, payee_id, is_settled, transaction_description, total_amount, amount_per_person, transaction_type, None])
             conn.commit()
             __holder__ = getLastInserted()
             print("Expense added.")
@@ -341,16 +340,302 @@ def add_expense(transaction_type):
 
         # Add to the individual_makes_transaction table
         try:
-            cur.execute("INSERT INTO individual_makes_transaction (individual_id, transaction_id) VALUES (?, ?)", [payee_id, __holder__])
+            cur.execute("INSERT INTO individual_makes_transaction VALUES (?, ?, ?)", [payee_id, __holder__, 0])
             conn.commit()
+            update_balance(payee_id, (total_amount - amount_per_person))
 
-            cur.execute("INSERT INTO individual_makes_transaction (individual_id, transaction_id) VALUES (?, ?)", [borrower_id, __holder__])
+            cur.execute("INSERT INTO individual_makes_transaction VALUES (?, ?, ?)", [borrower_id, __holder__, -1*amount_per_person])
             conn.commit()
+            update_balance(borrower_id, (-1*amount_per_person))
 
-            update_balance(payee_id, (-1*total_amount))
         except mariadb.Error as e:
             print(f"Error: {e}")
 
+def add_settlement(transaction_type):
+    isGroup = check_grouped()
+
+    # For group settlements
+    if isGroup:
+        # Choose a group
+        view_groups()
+        while True:
+            try:
+                group_id = int(input("Enter group id: "))
+            except ValueError:
+                print("Invalid input. Please enter an id.")
+                continue
+        
+            cur.execute("SELECT * FROM friend_group WHERE group_id = ?", [group_id])
+            result = cur.fetchone()
+
+            if result is not None:
+                break
+            else:
+                print("Group id not found. Please try again.")
+
+        # Choose a payer
+        view_group_members(group_id)
+        while True:
+            try:
+                payer_id = int(input("Enter your id: "))
+            except ValueError:
+                print("Invalid input. Please enter an id.")
+                continue
+        
+            cur.execute("SELECT * FROM individual WHERE individual_id = ? AND individual_id IN (SELECT individual_id FROM individual_belongs_friend_group WHERE group_id = ?)", [payer_id, group_id])
+            result = cur.fetchone()
+
+            if result is not None:
+                break
+            else:
+                print("You don't belong to that group. Please try again.")
+
+        # Display all the expenses of the payer that are not yet settled
+        query = """
+        SELECT transaction_id 'Transaction ID', transaction_description 'Description',
+            total_amount 'Total Amount', contribution 'Splitted Amount', payee_id 'Payee ID'
+            FROM transaction_history
+            WHERE group_id = ? AND payee_id != ?
+            AND type_of_transaction = ?
+            AND is_settled IS FALSE;
+        """
+
+        try:
+            cur.execute(query, [group_id, payer_id, "EXPENSE"])
+            result = cur.fetchone()
+            if result is None:
+                print("No expenses to settle.")
+                return 
+        except mariadb.Error as e:
+            print(f"Error: {e}")
+
+        # Display all the transactions that the user has not yet settled
+        cur.execute(query, [group_id, payer_id, "EXPENSE"])
+        formatTable = from_db_cursor(cur)
+        print(formatTable)
+        while True:
+            # Request for the transaction id to settle
+            try:
+                transaction_id_to_settle = int(input("Enter transaction id to settle: "))
+            except ValueError:
+                print("Invalid input. Please enter an id.")
+                continue
+
+            cur.execute("SELECT * FROM transaction_history WHERE transaction_id = ? AND group_id = ? AND payee_id != ? AND type_of_transaction = ? AND is_settled IS FALSE", [transaction_id_to_settle, group_id, payer_id, "EXPENSE"])
+            result = cur.fetchone()
+
+            if result is not None:
+                # Check if the selected transaction is already settled
+                cur.execute("SELECT * FROM individual_makes_transaction WHERE transaction_id = ? AND individual_id = ? AND transaction_amount != 0", [transaction_id_to_settle, payer_id])
+                result = cur.fetchone()
+
+                if result is None:
+                    print("You have already paid for your contribution.")
+                    return
+                else:
+                    break
+            else:
+                print("Transaction id not found. Please try again.")
+                continue
+
+        try:
+            cur.execute("SELECT transaction_id 'Transaction ID', -1*transaction_amount 'Outstanding Balance' FROM individual_makes_transaction WHERE transaction_id = ? AND individual_id = ?", [transaction_id_to_settle, payer_id])
+            formatTable = from_db_cursor(cur)
+            print(formatTable)
+        except mariadb.Error as e:
+            print(f"Error: {e}")
+
+        # Request for the amount to settle
+        while True:
+            try:
+                amount_to_settle = float(input("Enter amount to settle: "))
+            except ValueError:
+                print("Invalid input. Please enter an amount.")
+                continue
+
+            if amount_to_settle <= 0:
+                print("Amount to settle must be greater than 0. Please try again.")
+                continue
+            elif amount_to_settle > -1*result[2]:
+                print("Amount to settle must be less than or equal to the total amount. Please try again.")
+                continue
+            else:
+                break
+        
+        while True:
+            transaction_description = input("Enter transaction description: ")
+            if transaction_description.strip(): 
+                break  
+            else:
+                print("Transaction description cannot be empty. Please try again.")
+
+        cur.execute("SELECT payee_id FROM transaction_history WHERE transaction_id = ?", [transaction_id_to_settle])
+        payee_id = cur.fetchone()[0]
+
+        # Add the settlement to the transaction history table
+        cur.execute("INSERT INTO transaction_history (date_issued, is_group, payee_id, number_of_users_involved, is_settled, transaction_description, total_amount, contribution, type_of_transaction, group_id) VALUES(CURDATE(), ?, ?, 2, ?, ?, ?, ?, ?, ?)", [isGroup, payee_id, True, transaction_description, -1*result[2], amount_to_settle, transaction_type, group_id])
+        conn.commit()
+
+        # Add the settlement to the individual_makes_transaction table
+        cur.execute("SELECT payee_id FROM transaction_history WHERE transaction_id = ?", [transaction_id_to_settle])
+        payee_id = cur.fetchone()[0]
+
+        cur.execute("INSERT INTO individual_makes_transaction VALUES (?, ?, ?)", [payer_id, getLastInserted(), amount_to_settle])
+        conn.commit()
+
+        # Update all related information
+        cur.execute("UPDATE individual_makes_transaction SET transaction_amount = transaction_amount + ? WHERE transaction_id = ? AND individual_id = ?", [amount_to_settle, transaction_id_to_settle, payer_id])
+        conn.commit()
+        cur.execute("UPDATE individual SET balance = balance + ? WHERE individual_id = ?", [amount_to_settle, payer_id])
+        conn.commit()
+        cur.execute("UPDATE individual SET balance = balance - ? WHERE individual_id = (SELECT payee_id FROM transaction_history WHERE transaction_id = ?)", [amount_to_settle, transaction_id_to_settle])
+        conn.commit()
+
+        print("Settlement added.")
+
+        # Check if the transaction is already settled
+        cur.execute("SELECT * FROM individual_makes_transaction WHERE transaction_id = ?", [transaction_id_to_settle])
+        result = cur.fetchall()
+        for row in result:
+            if row[2] == 0:
+                isSettled = True
+            else:
+                isSettled = False
+                break
+        
+        if isSettled:
+            cur.execute("UPDATE transaction_history SET is_settled = TRUE WHERE transaction_id = ?", [transaction_id_to_settle])
+            conn.commit()
+            print("Transaction is now settled.")
+        else:
+            print("Transaction is still not yet settled.")
+
+    # For non-group settlements
+    else:
+        view_users()
+        # Request for the payer id
+        while True:
+            try:
+                payer_id = int(input("Enter payer id: "))
+            except ValueError:
+                print("Invalid input. Please enter an id.")
+                continue
+
+            cur.execute("SELECT * FROM individual WHERE individual_id = ?", [payer_id])
+            result = cur.fetchone()
+
+            if result is not None:
+                break
+            else:
+                print("Invalid User ID. Please try again.")
+
+        # Check if the user has any outstanding balance with a friend
+        query = """
+        SELECT * FROM transaction_history
+            WHERE payee_id != ?
+            AND type_of_transaction = ? 
+            AND is_settled IS FALSE 
+            AND is_group IS FALSE 
+            AND transaction_id IN 
+            (SELECT transaction_id FROM individual_makes_transaction 
+            WHERE individual_id = ? 
+            AND transaction_amount < 0)
+        """
+        
+        try:
+            cur.execute(query, [payer_id, "EXPENSE", payer_id])
+            result = cur.fetchone()
+            
+            if result is None:
+                print("You don't have any outstanding balance with a friend.")
+                return       
+        except mariadb.Error as e:
+            print(f"Error: {e}")
+
+        # Display all the transactions that the user has not yet settled
+        cur.execute("SELECT transaction_id 'Transaction ID', transaction_description 'Description', total_amount 'Total Amount', contribution 'Splitted Amount', payee_id 'Payee ID' FROM transaction_history WHERE payee_id != ? AND type_of_transaction = ? AND is_settled IS FALSE AND is_group IS FALSE", [payer_id, "EXPENSE"])
+        formatTable = from_db_cursor(cur)
+        print(formatTable)
+        while True:
+            #  Request for the transaction to settle
+            try:
+                transaction_id_to_settle = int(input("Enter transaction id to settle: "))
+            except ValueError:
+                print("Invalid input. Please enter an id.")
+                continue
+
+            cur.execute("SELECT * FROM transaction_history WHERE transaction_id = ? AND payee_id != ? AND type_of_transaction = ? AND is_settled IS FALSE AND is_group IS FALSE", [transaction_id_to_settle, payer_id, "EXPENSE"])
+            result = cur.fetchone()
+
+            if result is not None:
+                break
+            else:
+                print("Transaction ID not found. Please try again.")
+                continue
+
+        try:
+            cur.execute("SELECT transaction_id 'Transaction ID', -1*transaction_amount 'Outstanding Balance' FROM individual_makes_transaction WHERE transaction_id = ? AND individual_id = ?", [transaction_id_to_settle, payer_id])
+            formatTable = from_db_cursor(cur)
+            print(formatTable)
+        except mariadb.Error as e:
+            print(f"Error: {e}")
+
+        # Request for the amount to settle
+        while True:
+            try:
+                amount_to_settle = float(input("Enter amount to settle: "))
+            except ValueError:
+                print("Invalid input. Please enter an amount.")
+                continue
+
+            cur.execute("SELECT transaction_amount FROM individual_makes_transaction WHERE transaction_id = ? AND individual_id = ?", [transaction_id_to_settle, payer_id])
+            current_amount = cur.fetchone()[0]
+            if amount_to_settle <= 0:
+                print("Amount to settle must be greater than 0. Please try again.")
+                continue
+            elif amount_to_settle > -1*current_amount:
+                print("Amount to settle must be less than or equal to the total amount. Please try again.")
+                continue
+            else:
+                break
+        
+        while True:
+            transaction_description = input("Enter transaction description: ")
+            if transaction_description.strip(): 
+                break  
+            else:
+                print("Transaction description cannot be empty. Please try again.")
+
+        # Add the settlement to the transaction history table
+        cur.execute("SELECT payee_id FROM transaction_history WHERE transaction_id = ?", [transaction_id_to_settle])
+        payee_id = cur.fetchone()[0]
+
+        cur.execute("INSERT INTO transaction_history (date_issued, is_group, payee_id, number_of_users_involved, is_settled, transaction_description, total_amount, contribution, type_of_transaction) VALUES(CURDATE(), ?, ?, 2, ?, ?, ?, ?, ?)", [isGroup, payee_id, True, transaction_description, -1*result[2], amount_to_settle, transaction_type])
+        conn.commit()
+
+        # Add the settlement to the individual_makes_transaction table
+        cur.execute("INSERT INTO individual_makes_transaction VALUES (?, ?, ?)", [payer_id, getLastInserted(), amount_to_settle])
+        conn.commit()
+
+        # Update all related information
+        cur.execute("UPDATE individual_makes_transaction SET transaction_amount = transaction_amount + ? WHERE transaction_id = ? AND individual_id = ?", [amount_to_settle, transaction_id_to_settle, payer_id])
+        conn.commit()
+        cur.execute("UPDATE individual SET balance = balance + ? WHERE individual_id = ?", [amount_to_settle, payer_id])
+        conn.commit()
+        cur.execute("UPDATE individual SET balance = balance - ? WHERE individual_id = ?", [amount_to_settle, payee_id])
+        conn.commit()
+        
+        print("Settlement added.")
+        
+        # Check if the transaction is now settled
+        cur.execute("SELECT transaction_amount FROM individual_makes_transaction WHERE transaction_id = ? AND individual_id = ?", [transaction_id_to_settle, payer_id])
+        updated_balance = cur.fetchone()[0]
+        if updated_balance == 0:
+            cur.execute("UPDATE transaction_history SET is_settled = TRUE WHERE transaction_id = ?", [transaction_id_to_settle])
+            conn.commit()
+            print("Transaction is now settled.")
+        else:
+            print("Transaction is still not yet settled.")
 
 # Add an expense to the database
 def add_transaction():
@@ -359,6 +644,8 @@ def add_transaction():
 
     if transaction_type == "EXPENSE":
         add_expense(transaction_type)
+    else: 
+        add_settlement(transaction_type)
 
 
 # =================== ALL UPDATES ===================

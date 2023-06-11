@@ -1,9 +1,6 @@
 expenses = []
 friends = []
 groups = []
-# individual = [0, "", "", "", "", False, 0]
-
-individual_id = 000000000
 
 while True:
     print("\n----- Menu -----")

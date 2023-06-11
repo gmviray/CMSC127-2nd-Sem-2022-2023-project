@@ -18,43 +18,47 @@
 ## Getting Started <a id="getting-started" name='getting-started'></a>
 
 ### Installation Guide <a id="installation-guide" name='installation-guide'></a>
-Download the recent version of MariaDB
+
+**Download the recent version of MariaDB.**
 ```sh
 https://mariadb.org/download/
 ```
 
-Download the recent version of MariaDB Connector\C
+**Download the recent version of MariaDB Connector\C.**
 ```sh
 https://mariadb.com/downloads/connectors/
 ```
 
-After installation of MariaDB Connector/C download and install MariaDB Connector/Python with the following command
+**After installation of MariaDB Connector/C download and install MariaDB Connector/Python with the following command.**
 ```sh
 pip3 install mariadb
 ```
 
-install the necessary libraries
-```sh python -m pip install -U git+https://github.com/jazzband/prettytable```
+**Install the necessary libraries.**
+```sh
+python -m pip install -U git+https://github.com/jazzband/prettytable
+```
 
-https://pypi.org/project/prettytable/ reference guide for prettytable
+**Reference guide for prettytable.**
+```sh
+https://pypi.org/project/prettytable/
+```
 
-Download the setup_mysql.sql
-
-Open a terminal and go to the directory of the sql file.
+**Download the setup_mysql.sql. Then, open a terminal and go to the directory of the sql file.**
 ```sh
 cd /Users/YourUsername/File
 ```
 
-Log in to the root user of MariaDB.
+**Log in to the root user of MariaDB.**
 ```sh
 mysql -u root -p
 ```
 
-Once you are logged in to the MariaDB server, you can source and execute the setup_mysql.sql.
+**Once you are logged in to the MariaDB server, you can source and execute the setup_mysql.sql.**
 ```sh
 source setup_mysql.sql
 ```
-If the SQL script file is located in a different directory, you can provide the full file path instead:
+**If the SQL script file is located in a different directory, you can provide the full file path instead:**
 ```sh
 source /path/to/setup_mysql.sql
 ```

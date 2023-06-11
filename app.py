@@ -22,7 +22,7 @@ while True:
 
     if choice == "1":
         print("\n----- Add -----")
-        print("1. Add an expense")
+        print("1. Add a transaction")
         print("2. Add a friend")
         print("3. Add a group")
 
@@ -42,7 +42,7 @@ while True:
 
     elif choice == "2":
         print("\n----- Delete -----")
-        print("1. Delete an expense")
+        print("1. Delete a transaction")
         print("2. Delete a friend")
         print("3. Delete a group")
         print("4. Delete a friend from a group")
@@ -75,7 +75,7 @@ while True:
 
     elif choice == "3":
         print("\n----- Search -----")
-        print("1. Search an expense")
+        print("1. Search a transaction")
         print("2. Search a friend")
         print("3. Search a group")
 
@@ -104,7 +104,7 @@ while True:
 
     elif choice == "4":
         print("----- Update -----")
-        print("1. Update an expense")
+        print("1. Update a transaction")
         print("2. Update a friend")
         print("3. Update a group")
 
