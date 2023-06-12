@@ -99,65 +99,71 @@ INSERT INTO individual_belongs_friend_group VALUES (5, 2);
 INSERT INTO individual_belongs_friend_group VALUES (4, 2);
 
 -- =================================================================================================
--- -- Nongroup expense
--- INSERT INTO transaction_history (date_issued, is_group, payee_id, number_of_users_involved, is_settled, transaction_description, total_amount, contribution, type_of_transaction, group_id) VALUES ("2023-05-25", FALSE, 1, 5, FALSE, "Expense # 1", 2650.00, 530.00, "EXPENSE", NULL);
+-- Nongroup expense
+INSERT INTO transaction_history (date_issued, is_group, payee_id, number_of_users_involved, is_settled, transaction_description, total_amount, contribution, type_of_transaction, group_id) VALUES ("2023-04-25", FALSE, 1, 5, FALSE, "Expense # 1", 2650.00, 530.00, "EXPENSE", NULL);
 
--- INSERT INTO individual_makes_transaction VALUES (1, 1, 0);
+INSERT INTO individual_makes_transaction VALUES (1, 1, 0);
 
--- UPDATE individual SET balance = balance + 2120 WHERE individual_id = 1;
+UPDATE individual SET balance = balance + 2120 WHERE individual_id = 1;
 
--- INSERT INTO individual_makes_transaction VALUES (2, 1, -530.00);
+INSERT INTO individual_makes_transaction VALUES (2, 1, -530.00);
 
--- UPDATE individual SET balance = balance - 530 WHERE individual_id = 2;
+UPDATE individual SET balance = balance - 530 WHERE individual_id = 2;
 
--- INSERT INTO individual_makes_transaction VALUES (3, 1, -530.00);
+INSERT INTO individual_makes_transaction VALUES (3, 1, -530.00);
 
 -- UPDATE individual SET balance = balance - 530 WHERE individual_id = 3;
 
 -- INSERT INTO individual_makes_transaction VALUES (4, 1, -530.00);
 
--- UPDATE individual SET balance = balance - 530 WHERE individual_id = 4;
+UPDATE individual SET balance = balance - 530 WHERE individual_id = 4;
 
--- INSERT INTO individual_makes_transaction VALUES (5, 1, -530.00);
+INSERT INTO individual_makes_transaction VALUES (5, 1, -530.00);
 
--- UPDATE individual SET balance = balance - 530 WHERE individual_id = 5;
+UPDATE individual SET balance = balance - 530 WHERE individual_id = 5;
+-- =================================================================================================
+-- Nongroup Settlement
+INSERT INTO transaction_history (date_issued, is_group, payee_id, number_of_users_involved, is_settled, transaction_description, total_amount, contribution, type_of_transaction, group_id) VALUES ("2023-05-26", FALSE, 1, 2, TRUE, "Payment # 1", 2650.00, 530.00, "SETTLEMENT", NULL);
 
--- -- =================================================================================================
--- -- Nongroup Settlement
--- INSERT INTO transaction_history (date_issued, is_group, payee_id, number_of_users_involved, is_settled, transaction_description, total_amount, contribution, type_of_transaction, group_id) VALUES ("2023-05-26", FALSE, 1, 2, TRUE, "Payment # 1", 2650.00, 530.00, "SETTLEMENT", NULL);
+INSERT INTO individual_makes_transaction VALUES (2, 2, 530.00);
 
--- INSERT INTO individual_makes_transaction VALUES (2, 2, 530.00);
+UPDATE individual_makes_transaction SET transaction_amount = (SELECT transaction_amount FROM individual_makes_transaction WHERE transaction_id = 2 AND individual_id = 2) + transaction_amount WHERE individual_id = 2 AND transaction_id = 1;
 
--- UPDATE individual_makes_transaction SET transaction_amount = (SELECT transaction_amount FROM individual_makes_transaction WHERE transaction_id = 2 AND individual_id = 2) + transaction_amount WHERE individual_id = 2 AND transaction_id = 1;
+UPDATE individual SET balance = balance + 530 WHERE individual_id = 2;
 
--- UPDATE individual SET balance = balance + 530 WHERE individual_id = 2;
+UPDATE individual SET balance = balance - 530 WHERE individual_id = 1;
 
--- UPDATE individual SET balance = balance - 530 WHERE individual_id = 1;
+-- =================================================================================================
+-- Group expense
+INSERT INTO transaction_history (date_issued, is_group, payee_id, number_of_users_involved, is_settled, transaction_description, total_amount, contribution, type_of_transaction, group_id) VALUES ("2023-06-04", TRUE, 5, 3, FALSE, "Expense # 2", 150.00, 50.00, "EXPENSE", 2);
 
--- -- =================================================================================================
--- -- Group expense
--- INSERT INTO transaction_history (date_issued, is_group, payee_id, number_of_users_involved, is_settled, transaction_description, total_amount, contribution, type_of_transaction, group_id) VALUES ("2023-05-26", TRUE, 5, 3, FALSE, "Expense # 2", 150.00, 50.00, "EXPENSE", 2);
+INSERT INTO individual_makes_transaction VALUES (1, 3, -50);
 
--- INSERT INTO individual_makes_transaction VALUES (1, 3, -50);
+UPDATE individual SET balance = balance - 50 WHERE individual_id = 1;
 
--- UPDATE individual SET balance = balance - 50 WHERE individual_id = 1;
+INSERT INTO individual_makes_transaction VALUES (5, 3, 0);
 
--- INSERT INTO individual_makes_transaction VALUES (5, 3, 0);
+UPDATE individual SET balance = balance + 100 WHERE individual_id = 5;
 
--- UPDATE individual SET balance = balance + 100 WHERE individual_id = 5;
+INSERT INTO individual_makes_transaction VALUES (4, 3, -50);
 
--- INSERT INTO individual_makes_transaction VALUES (4, 3, -50);
+UPDATE individual SET balance = balance - 50 WHERE individual_id = 4;
 
--- UPDATE individual SET balance = balance - 50 WHERE individual_id = 4;
+-- =================================================================================================
+-- Group Settlement
+INSERT INTO transaction_history (date_issued, is_group, payee_id, number_of_users_involved, is_settled, transaction_description, total_amount, contribution, type_of_transaction, group_id) VALUES ("2023-06-05", TRUE, 5, 2, FALSE, "Payment # 2", 150.00, 40.00, "SETTLEMENT", 2);
 
--- -- =================================================================================================
--- -- Group Settlement
--- INSERT INTO transaction_history (date_issued, is_group, payee_id, number_of_users_involved, is_settled, transaction_description, total_amount, contribution, type_of_transaction, group_id) VALUES ("2023-05-26", TRUE, 5, 2, FALSE, "Payment # 2", 150.00, 40.00, "SETTLEMENT", 2);
+INSERT INTO individual_makes_transaction VALUES (1, 4, 50);
 
--- INSERT INTO individual_makes_transaction VALUES (1, 4, 50);
+UPDATE individual_makes_transaction SET transaction_amount = (SELECT transaction_amount FROM individual_makes_transaction WHERE transaction_id = 4 AND individual_id = 1) + transaction_amount WHERE individual_id = 1 AND transaction_id = 3;
 
--- UPDATE individual_makes_transaction SET transaction_amount = (SELECT transaction_amount FROM individual_makes_transaction WHERE transaction_id = 4 AND individual_id = 1) + transaction_amount WHERE individual_id = 1 AND transaction_id = 3;
+UPDATE individual SET balance = balance + 50 WHERE individual_id = 1;
 
--- UPDATE individual SET balance = balance + 50 WHERE individual_id = 1;
+UPDATE individual SET balance = balance - 50 WHERE individual_id = 5;
 
--- UPDATE individual SET balance = balance - 50 WHERE individual_id = 5;
+
+INSERT INTO transaction_history (date_issued, is_group, payee_id, number_of_users_involved, is_settled, transaction_description, total_amount, contribution, type_of_transaction, group_id) VALUES ("2023-06-12", FALSE, 3, 5, FALSE, "Expense # 3", 5000.00, 2500.00, "EXPENSE", NULL);
+INSERT INTO individual_makes_transaction VALUES (3, 5, 0);
+UPDATE individual SET balance = balance + 2500 WHERE individual_id = 3;
+INSERT INTO individual_makes_transaction VALUES (1, 5, -2500.00);
+UPDATE individual SET balance = balance - 2500 WHERE individual_id = 1;
