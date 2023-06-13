@@ -1110,14 +1110,15 @@ def delete_group():
         cur.execute('SELECT COUNT(group_id) from friend_group')
         group_num = cur.fetchone()[0]
         if group_num > 0:
-            cur.execute("SELECT group_id 'Group ID', group_name 'Group Name', number_of_members 'No. of Members' FROM friend_group")
+            print('Group with settled members:')
+            cur.execute("SELECT group_id 'Group ID', group_name 'Group Name', number_of_members 'No. of Members' FROM friend_group WHERE group_id NOT IN (select group_id from friend_group natural join transaction_history)")
             formatTable = from_db_cursor(cur)
             print(formatTable)
 
             id = input(">> Enter group's ID you want to delete: ")
-            cur.execute("SELECT * FROM friend_group WHERE group_id = ?", [id])
-            group = cur.fetchone()
-            if group is not None:
+            cur.execute("SELECT * FROM friend_group WHERE group_id = ? NOT IN (select group_id from friend_group natural join transaction_history)", [id])
+            group = cur.rowcount
+            if group > 0:
                 # Delete friend from the individual_belongs_friend_group table
                 cur.execute('DELETE FROM individual_belongs_friend_group WHERE group_id = ?', [id])
                 conn.commit()
@@ -1137,7 +1138,7 @@ def delete_group():
                 print(formatTable)
             else:
                 print("\n╔═══════════════════════╗")
-                print("║   Friend not found.   ║")     
+                print("║    Group not found.   ║")     
                 print("╚═══════════════════════╝")
         else:
             print("\nNo groups yet.")        
